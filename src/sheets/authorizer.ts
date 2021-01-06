@@ -2,25 +2,17 @@ import { promises as fs } from 'fs'
 import prompts from 'prompts'
 import { google, GoogleApis } from 'googleapis'
 import chalk from 'chalk'
+import { config } from '../config'
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-const homePath = process.env['HOME']
-if (!homePath) {
-  console.log(chalk.red('Cannot find HOME variable!'))
-  process.exit(1)
-}
-const CONFIG_PATH = `${homePath}/.config/work-hours-to-sheet`
-const TOKEN_PATH = `${CONFIG_PATH}/token.json`
-const CREDENTIALS_PATH = `${CONFIG_PATH}/credentials.json`
-
 export const createAuth = async () => {
   try {
-    const credentials = await fs.readFile(CREDENTIALS_PATH)
+    const credentials = await fs.readFile(config.CREDENTIALS_PATH)
     return createOAuth2Client(JSON.parse(credentials.toString()))
   } catch {
     throw new Error(
-      `Cannot open credentials.json file on path ${CREDENTIALS_PATH}`,
+      `Cannot open credentials.json file on path ${config.CREDENTIALS_PATH}`,
     )
   }
 }
@@ -37,7 +29,7 @@ async function createOAuth2Client(credentials: any) {
 
   try {
     // Check if we have previously stored a token.
-    const token = await fs.readFile(TOKEN_PATH)
+    const token = await fs.readFile(config.TOKEN_PATH)
     oAuth2Client.setCredentials(JSON.parse(token.toString()))
     return oAuth2Client
   } catch {
@@ -64,9 +56,12 @@ async function getNewToken(oAuth2Client: OAuth2Client) {
 
   const { tokens } = await oAuth2Client.getToken(code)
   oAuth2Client.setCredentials(tokens)
-  await fs.mkdir(CONFIG_PATH, { recursive: true })
-  await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens))
-  console.log(chalk.blue('Token stored to'), chalk.italic.blue(TOKEN_PATH))
+  await fs.mkdir(config.CONFIG_PATH, { recursive: true })
+  await fs.writeFile(config.TOKEN_PATH, JSON.stringify(tokens))
+  console.log(
+    chalk.blue('Token stored to'),
+    chalk.italic.blue(config.TOKEN_PATH),
+  )
 
   return oAuth2Client
 }

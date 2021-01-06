@@ -1,7 +1,18 @@
 import dotEnv from 'dotenv'
 import chalk from 'chalk'
 
-dotEnv.config()
+const homePath = process.env['HOME']
+if (!homePath) {
+  console.log(chalk.red('Cannot find HOME variable!'))
+  process.exit(1)
+}
+const configPath = `${homePath}/.config/work-hours-to-sheet`
+
+const internalConfig = {
+  CONFIG_PATH: `${homePath}/.config/work-hours-to-sheet`,
+  TOKEN_PATH: `${configPath}/token.json`,
+  CREDENTIALS_PATH: `${configPath}/credentials.json`,
+}
 
 enum ExpectedEnvFields {
   PERSONAL_SHEET_ID = 'PERSONAL_SHEET_ID',
@@ -13,7 +24,9 @@ enum ExpectedEnvFields {
   WORK_SHEET_COMMESSA_CELL = 'WORK_SHEET_COMMESSA_CELL',
 }
 
-export const config: { [value in ExpectedEnvFields]: string } = Object.values(
+dotEnv.config({ path: `${configPath}/user_config` })
+
+const envConfig: { [value in ExpectedEnvFields]: string } = Object.values(
   ExpectedEnvFields,
 ).reduce((cfg: any, field: string) => {
   if (!process.env[field]) {
@@ -23,3 +36,8 @@ export const config: { [value in ExpectedEnvFields]: string } = Object.values(
   cfg[field] = process.env[field] as string
   return cfg
 }, {})
+
+export const config = {
+  ...internalConfig,
+  ...envConfig,
+}
