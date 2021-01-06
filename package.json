@@ -1,0 +1,50 @@
+{
+  "name": "work-hours-to-sheet",
+  "author": "Andrea Santu",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "bin": {
+    "worksheet": "./cli.js"
+  },
+  "typings": "dist/index.d.ts",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint '*/**/*.{js,ts}' --fix --max-warnings 0"
+  },
+  "devDependencies": {
+    "@types/argparse": "^2.0.4",
+    "@types/prompts": "^2.0.9",
+    "@typescript-eslint/eslint-plugin": "^4.11.1",
+    "@typescript-eslint/parser": "^4.11.1",
+    "eslint": "^7.17.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.0",
+    "husky": "^4.3.6",
+    "prettier": "^2.2.1",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "argparse": "2.0.1",
+    "chalk": "4.1.0",
+    "date-fns": "2.16.1",
+    "dotenv": "8.2.0",
+    "googleapis": "39",
+    "prompts": "2.4.0"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint"
+    }
+  }
+}
