@@ -5,33 +5,60 @@ import { config } from '../config'
 
 export class WorkSheet extends Sheet {
   async saveWorkingDay(dailyMinutes: number, date: Date) {
-    const name = await this.promptForValue(
+    const name = await this.promptForValueFromDropDownCell(
       config.WORK_SHEET_NAME_CELL,
       'Who are you?',
     )
-    const commessa = await this.promptForValue(
-      config.WORK_SHEET_COMMESSA_CELL,
-      'On what you worked today?',
-    )
+    const commessa = await this.promptForCommessaField()
     const decimalTime = this.toDecimalValueRounded(dailyMinutes)
     const formattedDate = format(date, 'dd/MM/yyyy')
 
     const values = [[formattedDate, name, commessa, decimalTime]]
-    console.log(values)
 
     const sheets = await this.getSheets()
-    const appendV = config.WORK_SHEET_APPEND_RANGE
+    const page = config.WORK_PAGE_NAME
+    const range = config.WORK_SHEET_APPEND_RANGE
     const result = await sheets.spreadsheets.values.append({
       spreadsheetId: this.sheetId,
-      range: `${config.WORK_PAGE_NAME}!${appendV}:${appendV}`,
+      range: `${page}!${range}`,
+      valueInputOption: 'RAW',
+      requestBody: { values },
     })
 
-    console.log(result)
+    if (result.status !== 200) {
+      throw new Error('Error inserting new entry!')
+    }
 
     return decimalTime
   }
 
-  private async promptForValue(cellName: string, message: string) {
+  private async promptForCommessaField() {
+    const sheets = await this.getSheets()
+
+    const page = config.WORK_SHEET_COMMESSA_PAGE
+    const range = config.WORK_SHEET_COMMESSA_RANGE
+
+    const {
+      data: { values },
+    } = await sheets.spreadsheets.values.get({
+      spreadsheetId: this.sheetId,
+      range: `${page}!${range}`,
+    })
+
+    if (!values || values.length <= 0) {
+      throw new Error('No value found for COMMESSA field!')
+    }
+
+    return this.promptSelector(
+      'On what you worked today?',
+      values.flat().reverse(),
+    )
+  }
+
+  private async promptForValueFromDropDownCell(
+    cellName: string,
+    message: string,
+  ) {
     const values = await this.getCellDropdownValues(cellName)
     if (values.length === 1) {
       return values[0]
@@ -59,7 +86,7 @@ export class WorkSheet extends Sheet {
     }
 
     if (!values || values.length <= 0) {
-      throw new Error('No value found for COMMESSA field!')
+      throw new Error('No value found on dropdown!')
     }
 
     return values
