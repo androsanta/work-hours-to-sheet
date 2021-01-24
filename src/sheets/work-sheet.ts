@@ -1,15 +1,14 @@
 import { Sheet } from './sheet'
 import { format } from 'date-fns'
-import prompts from 'prompts'
 import { config } from '../config'
 
 export class WorkSheet extends Sheet {
-  async saveWorkingDay(dailyMinutes: number, date: Date) {
-    const name = await this.promptForValueFromDropDownCell(
-      config.WORK_SHEET_NAME_CELL,
-      'Who are you?',
-    )
-    const commessa = await this.promptForCommessaField()
+  async saveWorkingDay(
+    dailyMinutes: number,
+    date: Date,
+    commessa: string,
+    name: string,
+  ) {
     const decimalTime = this.toDecimalValueRounded(dailyMinutes)
     const formattedDate = format(date, 'dd/MM/yyyy')
 
@@ -32,7 +31,11 @@ export class WorkSheet extends Sheet {
     return decimalTime
   }
 
-  private async promptForCommessaField() {
+  getNameValues() {
+    return this.getCellDropdownValues(config.WORK_SHEET_NAME_CELL)
+  }
+
+  async getCommessaValues() {
     const sheets = await this.getSheets()
 
     const page = config.WORK_SHEET_COMMESSA_PAGE
@@ -49,21 +52,7 @@ export class WorkSheet extends Sheet {
       throw new Error('No value found for COMMESSA field!')
     }
 
-    return this.promptSelector(
-      'On what you worked today?',
-      values.flat().reverse(),
-    )
-  }
-
-  private async promptForValueFromDropDownCell(
-    cellName: string,
-    message: string,
-  ) {
-    const values = await this.getCellDropdownValues(cellName)
-    if (values.length === 1) {
-      return values[0]
-    }
-    return this.promptSelector(message, values)
+    return values.flat().reverse()
   }
 
   private async getCellDropdownValues(cell: string) {
@@ -90,21 +79,6 @@ export class WorkSheet extends Sheet {
     }
 
     return values
-  }
-
-  private async promptSelector(message: string, values: string[]) {
-    const { value } = await prompts({
-      type: 'select',
-      name: 'value',
-      message,
-      choices: values.map((v) => ({ title: v, value: v })),
-    })
-
-    if (!value) {
-      throw new Error('No value selected!')
-    }
-
-    return value as string
   }
 
   private toDecimalValueRounded(totalMinutes: number) {

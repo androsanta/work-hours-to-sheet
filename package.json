@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@types/argparse": "^2.0.4",
+    "@types/node-cron": "2.0.3",
     "@types/prompts": "^2.0.9",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
@@ -34,6 +35,7 @@
     "date-fns": "2.16.1",
     "dotenv": "8.2.0",
     "googleapis": "39",
+    "node-cron": "2.0.3",
     "ora": "5.3.0",
     "prompts": "2.4.0"
   },

@@ -2,6 +2,7 @@ import { ArgumentParser } from 'argparse'
 import chalk from 'chalk'
 import { format } from 'date-fns'
 import ora from 'ora'
+import prompts from 'prompts'
 import { PersonalSheet, WorkSheet, formatMinutes } from '../'
 import { config } from '../config'
 
@@ -64,9 +65,28 @@ const cli = async () => {
 
       spinner.text = 'Getting daily report'
       const { dailyMinutes, date } = await personalSheet.getReport()
+
+      spinner.text = 'Getting name values'
+      const names = await workSheet.getNameValues()
+
+      spinner.text = 'Getting commessa values'
+      const commesse = await workSheet.getCommessaValues()
       spinner.stop()
 
-      const decimalHours = await workSheet.saveWorkingDay(dailyMinutes, date)
+      const commessa = await promptSelector(
+        'On what you worked today?',
+        commesse,
+      )
+
+      spinner.start('Saving working day')
+      const decimalHours = await workSheet.saveWorkingDay(
+        dailyMinutes,
+        date,
+        commessa,
+        names[0],
+      )
+      spinner.stop()
+
       console.log(
         chalk.green('🤓'),
         chalk.bold.green(`${formatMinutes(dailyMinutes)} -> ${decimalHours}`),
@@ -77,6 +97,21 @@ const cli = async () => {
     default:
       parser.print_help()
   }
+}
+
+const promptSelector = async (message: string, values: string[]) => {
+  const { value } = await prompts({
+    type: 'select',
+    name: 'value',
+    message,
+    choices: values.map((v) => ({ title: v, value: v })),
+  })
+
+  if (!value) {
+    throw new Error('No value selected!')
+  }
+
+  return value as string
 }
 
 cli().catch((err) => {
