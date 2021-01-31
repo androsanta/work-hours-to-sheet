@@ -31,8 +31,7 @@ cron.schedule('*/5 8-22 * * *', async () => {
     // has elapsed, if so do the check, otherwise avoid calling getReport()
 
     const { dailyMinutes, date } = await personalSheet.getReport()
-    if (dailyMinutes >= 480 - 5) {
-      // almost 8h
+    if (isSameDay(date, currentDate) && dailyMinutes >= 480 - 5) {
       await axios.get(sendMessageUrl, {
         params: { chat_id: myChatId, text: 'No more workyyy!!' },
       })
