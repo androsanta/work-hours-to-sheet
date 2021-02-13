@@ -36,6 +36,7 @@
     "date-fns": "2.16.1",
     "dotenv": "8.2.0",
     "googleapis": "39",
+    "inspirational-quotes": "1.0.8",
     "node-cron": "2.0.3",
     "ora": "5.3.0",
     "prompts": "2.4.0"

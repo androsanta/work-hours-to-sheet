@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import axios from 'axios'
 import { isSameDay, differenceInMinutes } from 'date-fns'
+import quote from 'inspirational-quotes'
 import { PersonalSheet } from '../'
 import { config } from '../config'
 
@@ -23,6 +24,8 @@ cron.schedule('*/5 8-22 * * *', async () => {
   if (!isSameDay(currentDate, notification.date)) {
     notification.date = currentDate
     notification.sent = false
+    checking.time = currentDate
+    checking.minutesReading = 0
   }
 
   if (!notification.sent) {
@@ -42,10 +45,17 @@ cron.schedule('*/5 8-22 * * *', async () => {
     checking.minutesReading = dailyMinutes
 
     if (isSameDay(date, currentDate) && dailyMinutes >= 480 - 5) {
-      await axios.get(sendMessageUrl, {
-        params: { chat_id: myChatId, text: 'No more workyyy!!' },
+      // @TODO prompt for:
+      // - select commessa
+      // - confirm directly using the first commessa available
+      const dailyQuote = quote.getQuote()
+      const text = `_${dailyQuote.text}_\n*${dailyQuote.author}*\n\nEnough 👨🏻‍💻 for today`
+      const { status } = await axios.get(sendMessageUrl, {
+        params: { chat_id: myChatId, text, parse_mode: 'Markdown' },
       })
-      notification.sent = true
+      if (status === 200) {
+        notification.sent = true
+      }
     }
   }
 })

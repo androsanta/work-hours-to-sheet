@@ -1,6 +1,7 @@
 import { Sheet } from './sheet'
 import { format } from 'date-fns'
 import { config } from '../config'
+import {toDecimalValueRounded} from '../utils'
 
 export class WorkSheet extends Sheet {
   async saveWorkingDay(
@@ -9,7 +10,7 @@ export class WorkSheet extends Sheet {
     commessa: string,
     name: string,
   ) {
-    const decimalTime = this.toDecimalValueRounded(dailyMinutes)
+    const decimalTime = toDecimalValueRounded(dailyMinutes)
     const formattedDate = format(date, 'dd/MM/yyyy')
 
     const values = [[formattedDate, name, commessa, decimalTime]]
@@ -79,23 +80,5 @@ export class WorkSheet extends Sheet {
     }
 
     return values
-  }
-
-  private toDecimalValueRounded(totalMinutes: number) {
-    const hours = Math.floor(totalMinutes / 60)
-    const minutes = totalMinutes % 60
-
-    // round minutes to 15 minutes uncertainty (25 in decimal)
-    const STEP = 25
-    // 15 minutes gets converted to 0.25
-    const decimalMinutes = (minutes * 100) / 60
-    // 0.20 becomes 0.25, 0.10 becomes 0
-    const triggerPoint = Math.floor(STEP / 2)
-    const roundUp =
-      Math.max(decimalMinutes % STEP, triggerPoint - 1) >= triggerPoint
-
-    const decimalMinutesRounded =
-      Math.floor(decimalMinutes / STEP) * STEP + (roundUp ? STEP : 0)
-    return hours + decimalMinutesRounded / 100
   }
 }
