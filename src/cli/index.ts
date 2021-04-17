@@ -55,6 +55,13 @@ const cli = async () => {
       spinner = ora('Setting stop time').start()
       await personalSheet.setStopTime(args.time)
       spinner.succeed(chalk.italic.green('Stop time set'))
+      spinner.start('Getting report')
+      const { dailyMinutes: minutes } = await personalSheet.getReport()
+      console.log(
+        chalk.bold.green(formatMinutes(minutes)),
+        chalk.green('worked so far'),
+      )
+      spinner.stop()
       break
     case 'end-day':
       spinner = ora('Checking for uncompleted entries').start()
