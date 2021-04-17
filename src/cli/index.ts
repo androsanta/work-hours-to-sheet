@@ -1,6 +1,6 @@
 import { ArgumentParser } from 'argparse'
 import chalk from 'chalk'
-import { format } from 'date-fns'
+import { format, addMinutes } from 'date-fns'
 import ora from 'ora'
 import prompts from 'prompts'
 import { PersonalSheet, WorkSheet, formatMinutes } from '../'
@@ -19,7 +19,12 @@ const stopParser = subparsers.add_parser('stop')
 stopParser.add_argument('-t', '--time', {
   help: 'Override stopping time, with format HH.MM',
 })
-subparsers.add_parser('end-day')
+const endDayParser = subparsers.add_parser('end-day')
+endDayParser.add_argument('-f', '--full8h', {
+  action: 'store_true',
+  default: false,
+  help: 'End the day setting a total of 8 hours',
+})
 
 let spinner: ora.Ora
 
@@ -65,9 +70,22 @@ const cli = async () => {
       break
     case 'end-day':
       spinner = ora('Checking for uncompleted entries').start()
-      if (await personalSheet.hasUncompletedEntries()) {
-        spinner.text = 'There is an uncompleted entry, setting stop time'
-        await personalSheet.setStopTime()
+      const hasUncompletedEntries = await personalSheet.hasUncompletedEntries()
+
+      if (hasUncompletedEntries) {
+        if (!args.full8h) {
+          spinner.text = 'There is an uncompleted entry, setting stop time'
+          await personalSheet.setStopTime()
+        } else {
+          spinner.text =
+            'There is an uncompleted entry, setting stop time to match 8 hours'
+          const { dailyMinutes } = await personalSheet.getReport()
+          // daily minutes may be > or < than 480 (8h), this handle both cases
+          const difference = 480 - dailyMinutes
+          const stopDate = format(addMinutes(new Date(), difference), 'HH.mm')
+          spinner.text = `Setting stop time to ${stopDate}`
+          await personalSheet.setStopTime(stopDate)
+        }
       }
 
       spinner.text = 'Getting daily report'
