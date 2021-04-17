@@ -1,7 +1,7 @@
 import { Sheet } from './sheet'
 import { format } from 'date-fns'
 import { config } from '../config'
-import {toDecimalValueRounded} from '../utils'
+import { toDecimalValueRounded } from '../utils'
 
 export class WorkSheet extends Sheet {
   async saveWorkingDay(
