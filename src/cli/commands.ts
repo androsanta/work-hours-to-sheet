@@ -13,9 +13,9 @@ export class Commands {
   private useConsole: boolean
   private spinner?: ora.Ora
 
-  constructor(args: ConstructorArgs) {
-    this.spinner = args.spinner
-    this.useConsole = !!args.useConsole
+  constructor(args?: ConstructorArgs) {
+    this.spinner = args?.spinner
+    this.useConsole = !!args?.useConsole
   }
 
   async info() {
