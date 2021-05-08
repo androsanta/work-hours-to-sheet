@@ -1,3 +1,5 @@
+import prompts from 'prompts'
+
 export function toDecimalValueRounded(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
@@ -15,3 +17,21 @@ export function toDecimalValueRounded(totalMinutes: number) {
     Math.floor(decimalMinutes / STEP) * STEP + (roundUp ? STEP : 0)
   return hours + decimalMinutesRounded / 100
 }
+
+export async function promptSelector(message: string, values: string[]) {
+  const { value } = await prompts({
+    type: 'select',
+    name: 'value',
+    message,
+    choices: values.map((v) => ({ title: v, value: v })),
+  })
+
+  if (!value) {
+    throw new Error('No value selected!')
+  }
+
+  return value as string
+}
+
+export const formatMinutes = (minutes: number) =>
+  `${Math.floor(minutes / 60)} h ${minutes % 60} m`

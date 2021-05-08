@@ -36,7 +36,7 @@ export class WorkSheet extends Sheet {
     return this.getCellDropdownValues(config.WORK_SHEET_NAME_CELL)
   }
 
-  async getCommessaValues() {
+  async getCommessaValues(): Promise<string[]> {
     const sheets = await this.getSheets()
 
     const page = config.WORK_SHEET_COMMESSA_PAGE

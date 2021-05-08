@@ -1,10 +1,7 @@
 import { ArgumentParser } from 'argparse'
 import chalk from 'chalk'
-import { format, addMinutes } from 'date-fns'
 import ora from 'ora'
-import prompts from 'prompts'
-import { PersonalSheet, WorkSheet, formatMinutes } from '../'
-import { config } from '../config'
+import { Commands } from './commands'
 
 const parser = new ArgumentParser({
   description: 'Set work hours to a google spreadsheet',
@@ -26,122 +23,36 @@ endDayParser.add_argument('-f', '--full8h', {
   help: 'End the day setting a total of 8 hours',
 })
 
-let spinner: ora.Ora
+const spinner = ora()
 
 const cli = async () => {
-  const personalSheet = new PersonalSheet(
-    config.PERSONAL_SHEET_ID,
-    config.PERSONAL_PAGE_NAME,
-  )
-  const workSheet = new WorkSheet(config.WORK_SHEET_ID, config.WORK_PAGE_NAME)
-
+  const commands = new Commands({
+    useConsole: true,
+    spinner,
+  })
   const args = parser.parse_args()
 
   switch (args.subcommand) {
     case 'info':
-      spinner = ora('Fetching data').start()
-      const report = await personalSheet.getReport()
-      spinner.stop()
-      console.log(chalk.italic.grey(format(report.date, 'EEEE, d LLLL yyyy')))
-      console.log(
-        chalk.bold.green(formatMinutes(report.dailyMinutes)),
-        chalk.green('worked so far'),
-        chalk.grey(
-          `(${report.lastRow?.[1]} -> ${report.lastRow?.[2] || 'now'})`,
-        ),
-      )
+      await commands.info()
       break
     case 'start':
-      spinner = ora('Setting start time').start()
-      await personalSheet.setStartTime(args.time)
-      spinner.succeed(chalk.italic.green('Start time set'))
+      await commands.start(args.time)
       break
     case 'stop':
-      spinner = ora('Setting stop time').start()
-      await personalSheet.setStopTime(args.time)
-      spinner.succeed(chalk.italic.green('Stop time set'))
-      spinner.start('Getting report')
-      const { dailyMinutes: minutes } = await personalSheet.getReport()
-      console.log(
-        chalk.bold.green(formatMinutes(minutes)),
-        chalk.green('worked so far'),
-      )
-      spinner.stop()
+      await commands.stop(args.time)
       break
     case 'end-day':
-      spinner = ora('Checking for uncompleted entries').start()
-      const hasUncompletedEntries = await personalSheet.hasUncompletedEntries()
-
-      if (hasUncompletedEntries) {
-        if (!args.full8h) {
-          spinner.text = 'There is an uncompleted entry, setting stop time'
-          await personalSheet.setStopTime()
-        } else {
-          spinner.text =
-            'There is an uncompleted entry, setting stop time to match 8 hours'
-          const { dailyMinutes } = await personalSheet.getReport()
-          // daily minutes may be > or < than 480 (8h), this handle both cases
-          const difference = 480 - dailyMinutes
-          const stopDate = format(addMinutes(new Date(), difference), 'HH.mm')
-          spinner.text = `Setting stop time to ${stopDate}`
-          await personalSheet.setStopTime(stopDate)
-        }
-      }
-
-      spinner.text = 'Getting daily report'
-      const { dailyMinutes, date } = await personalSheet.getReport()
-
-      spinner.text = 'Getting name values'
-      const names = await workSheet.getNameValues()
-
-      spinner.text = 'Getting commessa values'
-      const commesse = await workSheet.getCommessaValues()
-      spinner.stop()
-
-      const commessa = await promptSelector(
-        'On what you worked today?',
-        commesse,
-      )
-
-      spinner.start('Saving working day')
-      const decimalHours = await workSheet.saveWorkingDay(
-        dailyMinutes,
-        date,
-        commessa,
-        names[0],
-      )
-      spinner.stop()
-
-      console.log(
-        chalk.green('🤓'),
-        chalk.bold.green(`${formatMinutes(dailyMinutes)} -> ${decimalHours}`),
-        chalk.green('hours'),
-        chalk.bold.green(':)'),
-      )
+      await commands.endDay({ full8h: args.full8h })
       break
     default:
       parser.print_help()
   }
 }
 
-const promptSelector = async (message: string, values: string[]) => {
-  const { value } = await prompts({
-    type: 'select',
-    name: 'value',
-    message,
-    choices: values.map((v) => ({ title: v, value: v })),
-  })
-
-  if (!value) {
-    throw new Error('No value selected!')
-  }
-
-  return value as string
-}
-
 cli().catch((err) => {
   const msg = chalk.italic.red(err?.message || err)
-  if (spinner?.isSpinning) {
+  if (spinner.isSpinning) {
     spinner.fail(msg)
   } else {
     console.error(msg)
