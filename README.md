@@ -47,7 +47,7 @@ For example __7h 50m__ becomes __7h 45m__, while __7h 55m__ becomes __8h__
 
 ## _Telegram Bot_
 The project contains also a telegram bot from which it's possible to execute
-the same command of the CLI. It also checks periodically if the total time is
+the same commands of the CLI. It also checks periodically if the total time is
 close to 8 hours to send a notification with a random inspirational quote.
 \
 It has been fun to program the bot but I've never actually used it 🤓
