@@ -33,7 +33,7 @@ Once there's at least a time interval in _Sheet 1_ it's possible to save the tot
 amount of time worked into _Sheet 2_ (the official sheet that needs to be compiled)
 with the command:
 \
-`worksheet end-day`
+`$ worksheet end-day`
 
 This command compute the total amount of time worked approximating to the quarter,
 by defect or excess if the quarter is passed by more o less than __7 minutes and 30 seconds__.
